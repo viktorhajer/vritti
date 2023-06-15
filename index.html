@@ -1,0 +1,310 @@
+<html>
+<head>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; }
+    h2 { margin: 40px 0; font-size: 20px; }
+    .container { display: flex; }
+    .form { width: 435px; }
+    #result-container { border-left: 2px solid #d7d7d7; padding-left: 24px; }
+    button { margin: 20px 0; border: none; font-weight: bold; background: #eee4aa; padding: 10px 15px; min-width: 100px; border-radius: 6px; cursor: pointer; }
+    .button-container { text-align: center; }
+    button:focus { outline: 0; }
+    table { border: 1px solid #d7d7d7; }
+    td, th { padding: 10px 15px; text-align: center; }
+    td { font-weight: bold }
+    th, td:nth-child(1), td:last-child { font-size: 12px; opacity: 0.8; }
+    tr:nth-child(even), thead tr { background-color: #efefef; }
+    tr.primary { background-color: #d3efef; }
+
+    .field, .single-result {
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .field .label, .single-result .label {
+      padding: 0;
+      margin-right: 10px;
+      font-weight: bold;
+      width: 150px;
+      text-align: right;
+    }
+    
+    .single-result .label {
+      width: 170px;
+      text-align: left;
+    }
+
+    .field input, .field select {
+      padding: 5px 10px;
+      width: 80px;
+      margin: 0 5px;
+      text-align: center;
+    }
+    
+    .field select {
+      width: 200px;
+    }
+    
+    .last {
+      margin-bottom: 20px;
+    }
+    
+    .hidden { display: none; }
+  </style>
+</head>
+<body style="margin: 50px;">
+
+  <h2>Sama/Visama Vritti haladó kalkulátor</h2>
+
+  <div class="container">
+    <div class="form">
+      <div class="field">
+        <div class="label">Arány</div>
+        <select class="" id="rate">
+          <option value="1 0 1 0">Sama Vritti A: 1 0 1 0</option>
+          <option value="2 1 2 1">Sama Vritti A: 2 1 2 1</option>
+          <option value="3 1 3 1">Sama Vritti A: 3 1 3 1</option>
+          <option value="3 2 3 2">Sama Vritti A: 3 2 3 2</option>
+          <option value="1 1 1 1">Sama Vritti B: 1 1 1 1</option>
+          <option value="2 2 3 1" selected>Visama Vritti A: 2 2 3 1</option>
+          <option value="2 3 3 1">Visama Vritti A: 2 3 3 1</option>
+          <option value="2 3 3 2">Visama Vritti A: 2 3 3 2</option>
+          <option value="1 1 1 0">Visama Vritti B: 1 1 1 0</option>
+          <option value="1 0 1 1">Visama Vritti B: 1 0 1 1</option>
+          <option value="2 3 3 0">Visama Vritti B: 2 3 3 0</option>
+          <option value="3 0 3 2">Visama Vritti B: 3 0 3 2</option>
+        </select>
+      </div>
+      <div class="field">
+        <div class="label">Kezdő egység</div>
+        <input type="number" id="preStop" value="3"/>
+      </div>
+      <div class="field">
+        <div class="label">Emelkedés</div>
+        <input type="number" id="preJump" value="1"/>
+      </div>
+      <div class="field">
+        <div class="label">Leghosszabb ciklus</div>
+        <input type="number" id="cycleMaxLength" value="50"/>mp
+      </div>
+      <div class="field">
+        <div class="label">Csökkenés</div>
+        <input type="number" id="postJump" value="1"/>
+      </div>
+      <div class="field">
+        <div class="label">Lezáró egység</div>
+        <input type="number" id="postStop" value="4"/>
+      </div>
+      <div class="field">
+        <div class="label">Fő szorzó</div>
+        <input type="number" id="primaryMultiplier" value="12"/> x
+      </div>
+      <div class="field">
+        <div class="label">Másodlagos szorzó</div>
+        <input type="number" id="secondaryMultiplier" value="6"/> x
+      </div>
+      <div class="button-container">
+        <button id="calculateButton">Kalkulál</button>
+      </div>
+    </div>
+    
+    <div id="result-container">
+      <div class="single-result hidden" id="resCycleMaxLengthC">
+        <div class="label">Leghosszabb ciklus (mp)</div>
+        <div class="value" id="resCycleMaxLength"></div>
+      </div>
+      <div class="single-result hidden" id="resCycleMinLengthC">
+        <div class="label">Legrövidebb ciklus (mp)</div>
+        <div class="value" id="resCycleMinLength"></div>
+      </div>
+      <div class="single-result hidden" id="resCycleNumberC">
+        <div class="label">Ciklusok száma</div>
+        <div class="value" id="resCycleNumber"></div>
+      </div>
+      <div class="single-result hidden last" id="resTotalTimeC">
+        <div class="label">Teljes hossz</div>
+        <div class="value" id="resTotalTime"></div>
+      </div>
+      <table id="result-table" cellpadding="0" cellspacing="0" class="hidden">
+        <thead>
+          <tr>
+            <th>Ismétlés</th>
+            <th>Belégzés</th>
+            <th>Bent tartás</th>
+            <th>Kilégzés</th>
+            <th>Kint tartás</th>
+            <th>Hossz</th>
+            <th>Összesen</th>
+          </tr>
+        </thead>
+        <tbody id="result-body">
+        </tbody>
+      </table>
+    </div>  
+  </div>
+  
+  <script>
+    // constants
+    const MAX_STEP = 50;
+      
+    // inputs
+    let preStop;
+    let preJump;
+    let postStop;
+    let postJump;
+    let secondaryMultiplier = 6;
+    let primaryMultiplier = 12;
+    let cycleMaxLength = 40;
+    let primaryRate = [1, 0, 1, 0];
+
+    reset();
+    
+    function calculate() {
+      reset();
+      const step = getStep();   
+      if (step === 0) {
+        console.log('ERROR');
+      } else {
+        const line1 = getStepLine(step, preStop, preJump);
+        const line2 = getStepLine(step, postStop, postJump);
+        const table = generateResult(step, line1, line2);
+        viewResult(table);
+      }
+    }
+    
+    function getStep() {
+      for (let i = 1; i <= MAX_STEP; i++) {
+        let actualLength = 0;
+        for (let j = 0; j < 4; j++) {
+          actualLength += primaryRate[j] * i;
+          if (actualLength > cycleMaxLength) {
+            return i - 1;
+          }
+        }
+      }
+      return 0;
+    }
+    
+    function getStepLine(step, stop, jump) {
+      const line = [];
+      for (let i = step; i >= stop; i -= jump) {
+        line.push(i);
+      }
+      line[line.length - 1] = stop;
+      line.reverse();
+      return line;
+    }
+    
+    function generateResult(step, line1, line2) {
+      const table = {};
+      table.lines = [];
+      table.cycleNumber = 0;
+      table.cycleMaxLength = 0;
+      table.cycleMinLength = 0;
+      for (let i = 0; i < line1.length; i++) {
+        let multi = secondaryMultiplier;
+        if (line1[i] === step) {
+          multi = primaryMultiplier;
+        }
+        table.lines[i] = [];
+        table.lines[i][0] = multi;
+        for (let j = 0; j < 4; j++) {
+          table.lines[i][j+1] = primaryRate[j] * line1[i];
+        }
+        if (line1[i] === step || i === 0) {
+          for (let j = 0; j < 4; j++) {
+            if (line1[i] === step) {
+              table.cycleMaxLength += primaryRate[j] * line1[i];
+            } else {
+              table.cycleMinLength += primaryRate[j] * line1[i];
+            }
+          }
+        }
+      }
+      
+      let index = table.lines.length;
+      for (let i = line2.length - 2; i >= 0; i--) {
+        table.lines[index] = [];
+        table.lines[index][0] = secondaryMultiplier;
+        for (let j = 0; j < 4; j++) {
+          table.lines[index][j+1] = primaryRate[j] * line2[i];
+        }
+        index++;
+      }
+      table.totalTime = 0;
+      table.lines.forEach(line => {
+        table.cycleNumber += line[0];
+        let lineTotal = 0;
+        for (let j = 1; j <= 4; j++) {
+          lineTotal += line[j];
+        }
+        table.totalTime += lineTotal * line[0];
+      });
+      console.log(table);
+      return table;
+    }
+    
+    function viewResult(table) {
+    
+      ['result-table', 'resCycleMaxLengthC', 'resCycleMinLengthC', 'resCycleNumberC', 'resTotalTimeC']
+        .forEach(e => document.getElementById(e).classList.remove('hidden'));
+      const body = document.getElementById('result-body');
+      body.innerHTML = '';
+      
+      let inner = '';
+      for (let i = 0; i < table.lines.length; i++) {
+        if (table.lines[i][0] === primaryMultiplier) {
+          inner += '<tr class="primary">';
+        } else {
+          inner += '<tr>';
+        }
+        
+        let sum = 0;
+        for (let j = 0; j < table.lines[i].length; j++) {
+          if (j === 0) {
+            inner += '<td>' + table.lines[i][j] + ' x</td>';
+          } else {
+            sum += table.lines[i][j];
+            inner += '<td>' + table.lines[i][j] + '</td>';
+          }
+        }
+        inner += '<td>' + sum + ' mp</td>';
+        inner += '<td>' + formatTime(sum*table.lines[i][0]) + '</td>';
+        inner += '</tr>';
+      }
+      body.innerHTML = inner;
+      document.getElementById('resCycleMaxLength').innerHTML = table.cycleMaxLength + ' mp';
+      document.getElementById('resCycleMinLength').innerHTML = table.cycleMinLength + ' mp';
+      document.getElementById('resCycleNumber').innerHTML = table.cycleNumber;
+      document.getElementById('resTotalTime').innerHTML = formatTime(table.totalTime);
+    }
+
+    function reset() {
+      preStop = +document.getElementById('preStop').value;
+      preJump = +document.getElementById('preJump').value;
+      postStop = +document.getElementById('postStop').value;
+      postJump = +document.getElementById('postJump').value;
+      secondaryMultiplier = +document.getElementById('secondaryMultiplier').value;
+      primaryMultiplier = +document.getElementById('primaryMultiplier').value;
+      cycleMaxLength = +document.getElementById('cycleMaxLength').value;
+      primaryRate = document.getElementById('rate').value.split(' ').map(v => +v);
+    }
+    
+    function formatTime(time) {
+      if (time <= 0) {
+        return '0 mp';
+      }
+      if (Math.floor(time / 60) === 0) {
+        return (time % 60) + ' mp';
+      }
+      if (time % 60 === 0) {
+        return Math.floor(time / 60) + ' p'; 
+      }
+      return Math.floor(time / 60) + ' p ' + (time % 60) + ' mp';
+    }
+    
+    document.getElementById('calculateButton').onclick = calculate;
+  </script>
+</body>
+</html>
