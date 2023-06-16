@@ -16,7 +16,7 @@
     table { border: 1px solid #d7d7d7; }
     td, th { padding: 10px 15px; text-align: center; }
     td { font-weight: bold }
-    th, td:nth-child(1), td:last-child { font-size: 12px; opacity: 0.8; }
+    th, td:nth-child(1), td:nth-child(2), td:last-child { font-size: 12px; opacity: 0.8; }
     tr:nth-child(even), thead tr { background-color: #efefef; }
     tr.primary { background-color: #d3efef; }
 
@@ -113,26 +113,31 @@
       </div>
     </div>
     
-    <div id="result-container">
-      <div class="single-result hidden" id="resCycleMaxLengthC">
+    <div id="result-container" class="hidden">
+      <div class="single-result" id="resCycleMaxLengthC">
         <div class="label">Leghosszabb ciklus (mp)</div>
         <div class="value" id="resCycleMaxLength"></div>
       </div>
-      <div class="single-result hidden" id="resCycleMinLengthC">
+      <div class="single-result" id="resCycleMinLengthC">
         <div class="label">Legrövidebb ciklus (mp)</div>
         <div class="value" id="resCycleMinLength"></div>
       </div>
-      <div class="single-result hidden" id="resCycleNumberC">
+      <div class="single-result" id="resCycleNumberC">
         <div class="label">Ciklusok száma</div>
         <div class="value" id="resCycleNumber"></div>
       </div>
-      <div class="single-result hidden last" id="resTotalTimeC">
+      <div class="single-result" id="resStepNumberC">
+        <div class="label">Lépések száma</div>
+        <div class="value" id="resStepNumber"></div>
+      </div>
+      <div class="single-result last" id="resTotalTimeC">
         <div class="label">Teljes hossz</div>
         <div class="value" id="resTotalTime"></div>
       </div>
-      <table id="result-table" cellpadding="0" cellspacing="0" class="hidden">
+      <table id="result-table" cellpadding="0" cellspacing="0">
         <thead>
           <tr>
+            <th>#</th>
             <th>Ismétlés</th>
             <th>Belégzés</th>
             <th>Bent tartás</th>
@@ -251,8 +256,7 @@
     
     function viewResult(table) {
     
-      ['result-table', 'resCycleMaxLengthC', 'resCycleMinLengthC', 'resCycleNumberC', 'resTotalTimeC']
-        .forEach(e => document.getElementById(e).classList.remove('hidden'));
+      document.getElementById('result-container').classList.remove('hidden');
       const body = document.getElementById('result-body');
       body.innerHTML = '';
       
@@ -265,6 +269,7 @@
         }
         
         let sum = 0;
+        inner += '<td>' + (i+1) + '.</td>';
         for (let j = 0; j < table.lines[i].length; j++) {
           if (j === 0) {
             inner += '<td>' + table.lines[i][j] + ' x</td>';
@@ -281,6 +286,7 @@
       document.getElementById('resCycleMaxLength').innerHTML = table.cycleMaxLength + ' mp';
       document.getElementById('resCycleMinLength').innerHTML = table.cycleMinLength + ' mp';
       document.getElementById('resCycleNumber').innerHTML = table.cycleNumber;
+      document.getElementById('resStepNumber').innerHTML = table.lines.length;
       document.getElementById('resTotalTime').innerHTML = formatTime(table.totalTime);
     }
 
